@@ -1,3 +1,5 @@
+"""FastAPI зависимости для аутентификации и авторизации."""
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,11 +17,20 @@ async def get_current_user(
     session: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    Получить текущего активного пользователя.
-    Если токен недействителен или пользователь заблокирован — кидаем ошибку.
-    """
+    Получить текущего аутентифицированного пользователя из JWT токена.
 
-    # 1. Проверка токена (самая быстрая)
+    Args:
+        token: JWT токен из заголовка Authorization
+        session: Асинхронная сессия БД
+
+    Returns:
+        User: Активный пользователь
+
+    Raises:
+        HTTPException: 401 если токен невалиден или пользователь не найден
+        HTTPException: 403 если аккаунт заблокирован
+    """
+    # 1. Проверка токена
     try:
         token_data = decode_access_token(token)
     except (TokenExpired, TokenInvalid):
@@ -29,7 +40,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 2. Проверка sub → int (защита от кривых токенов (идентиикатор))
+    # 2. Проверка user_id
     try:
         user_id = int(token_data.sub)
     except (ValueError, TypeError):
@@ -39,7 +50,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 3. Поиск пользователя (дорогой шаг — после быстрых проверок)
+    # 3. Поиск пользователя
     user = await get_user_by_id(session, user_id)
     if not user:
         raise HTTPException(
@@ -48,7 +59,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 4. Проверка активности (в модели есть is_active)
+    # 4. Проверка активности (пользователь мог быть забанен после логина)
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
