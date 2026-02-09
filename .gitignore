@@ -10,3 +10,6 @@ wheels/
 .venv
 
 .env
+
+# лист задач и планов
+MY_TODO.md

@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.config import settings
-from app.database import Base
-import app.models                          # in this
+from app.database import Base   # in this
+# Import models so they're registered on Base.metadata for autogenerate
+import app.models  # noqa: F401                          in this
 
 
 # this is the Alembic Config object, which provides
