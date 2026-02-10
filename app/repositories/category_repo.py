@@ -15,16 +15,13 @@ class CategoryAlreadyExists(Exception):
 
 
 
-async def get_category_with_relation(session: AsyncSession, val: int | str) -> Category | None:
-    # Используем selectinload для коллекций (1:N)
-    opts = [selectinload(Category.products)]
-    
+async def get_category(session: AsyncSession, val: int | str) -> Category | None:
+    """ Category по id или slug (БЕЗ подгрузки товаров) """    
     if isinstance(val, int) or (isinstance(val, str) and val.isdigit()):
-        return await session.get(Category, int(val), options=opts)
-    
+        return await session.get(Category, int(val))    
     # Поиск по slug
     res = await session.execute(
-        select(Category).where(Category.slug == val).options(*opts)
+        select(Category).where(Category.slug == val)
     )
     return res.scalar_one_or_none()
 
@@ -37,7 +34,7 @@ async def category_list(
     offset: int | None = 0
     ) -> Sequence[Category]:
     """ Получить список Category """
-    stmt = select(Category)
+    stmt = select(Category).order_by(Category.id)
     if only_active:
         stmt = stmt.where(Category.is_active)
     if limit is not None:
@@ -54,10 +51,10 @@ async def create_category(session: AsyncSession, *, name: str, slug: str) -> Cat
         category = Category(name=name, slug=slug)
         session.add(category)
         await session.commit()
+        await session.refresh(category)
     except IntegrityError:
         await session.rollback()
         raise CategoryAlreadyExists
-    await session.refresh(category)
     return category
 
 
@@ -78,6 +75,5 @@ async def update_category(
 async def deactivate_category(session: AsyncSession, category: Category) -> Category:
     """ Деактивировать Category """
     category.is_active = False
-    session.add(category)
     await session.commit()
     return category
