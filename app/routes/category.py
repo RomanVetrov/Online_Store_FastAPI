@@ -16,7 +16,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get("/all", response_model=list[CategoryRead], summary="Получить список категорий")
-async def get_categories_list(
+async def get_categories_list_route(
     only_active: bool = Query(True, description="Только активные категории"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -33,13 +33,13 @@ async def get_categories_list(
 
 
 @router.get("/{val}", response_model=CategoryRead, summary="Получить категорию")
-async def get_category(category: CategoryDep):
+async def get_category_route(category: CategoryDep):
     """Получение категории по ID или slug."""
     return category
 
 
 @router.patch("/{val}", response_model=CategoryRead, summary="Обновить категорию")
-async def category_update(
+async def category_update_route(
     category: CategoryDep,
     update_data: CategoryUpdatePatch,
     session: AsyncSession = Depends(get_db)
@@ -60,7 +60,7 @@ async def category_update(
     status_code=status.HTTP_201_CREATED,
     summary="Создать категорию"
 )
-async def category_create(
+async def category_create_route(
     payload: CategoryCreate,
     session: AsyncSession = Depends(get_db)
 ):
@@ -79,7 +79,7 @@ async def category_create(
 
 
 @router.post("/{val}/deactivate", response_model=CategoryRead, summary="Деактивировать категорию")
-async def deactivate_category_action(
+async def deactivate_category_route(
     category: CategoryDep,
     session: AsyncSession = Depends(get_db)
 ):
