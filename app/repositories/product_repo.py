@@ -17,9 +17,7 @@ class ProductAlreadyExists(Exception):
 
 async def get_product_with_relation(session: AsyncSession, id: int) -> Product | None:
     """ Product по id с подгрузкой категории"""
-    stmt = select(Product).options(selectinload(Product.category)).where(Product.id == id)
-    product = await session.execute(stmt)
-    return product.scalar_one_or_none()
+    return await session.get(Product, id, options=[selectinload(Product.category)])
 
 
 async def get_product_list(

@@ -19,9 +19,7 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     Returns:
         User | None: Пользователь или None если не найден
     """
-    stmt = select(User).where(User.id == user_id)
-    user = await session.execute(stmt)
-    return user.scalar_one_or_none()
+    return await session.get(User, user_id)
 
 
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:

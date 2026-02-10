@@ -25,4 +25,4 @@ class Product(TimestampMixin, Base):
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id", ondelete="RESTRICT"),
         nullable=False)
-    category: Mapped["Category"] = relationship(back_populates="products")
+    category: Mapped[Category] = relationship(back_populates="products")

@@ -12,4 +12,4 @@ wheels/
 .env
 
 # лист задач и планов
-MY_TODO.md
+MY_TODO.py
