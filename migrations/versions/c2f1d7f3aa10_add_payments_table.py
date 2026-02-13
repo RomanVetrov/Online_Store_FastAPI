@@ -5,6 +5,7 @@ Revises: 91c428cb3f75
 Create Date: 2026-02-13 20:10:00.000000
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -60,7 +61,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("idempotency_key"),
     )
-    op.create_index(op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False)
+    op.create_index(
+        op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False
+    )
     op.create_index(op.f("ix_payments_status"), "payments", ["status"], unique=False)
     op.create_index(
         "ix_payments_order_status",
