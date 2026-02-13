@@ -39,7 +39,9 @@ async def create_payment_route(
     """Создать платеж для заказа текущего пользователя."""
     order = await get_order_by_id(session, order_id, load_items=False)
     if not order:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Заказ не найден")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Заказ не найден"
+        )
     if order.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

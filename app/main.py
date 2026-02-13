@@ -9,7 +9,7 @@ from app.routes.payment import router as payment_router
 app = FastAPI(
     title="Online Store API",
     description="API для интернет-магазина с авторизацией и управлением товарами",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 app.include_router(auth_router, prefix="/api/v1")

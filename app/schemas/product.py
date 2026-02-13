@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class ProductCreate(BaseModel):
     """Схема для создания продукта"""
+
     name: str = Field(max_length=100)
     description: str | None = Field(None, max_length=500)
     price: Decimal = Field(gt=0, decimal_places=2)  # цена > 0, 2 знака после запятой
@@ -13,8 +14,9 @@ class ProductCreate(BaseModel):
 
 class ProductUpdatePatch(BaseModel):
     """Схема для частичного обновления (PATCH)"""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     name: str | None = Field(None, max_length=100)
     description: str | None = Field(None, max_length=500)
     price: Decimal | None = Field(None, gt=0, decimal_places=2)
@@ -24,11 +26,9 @@ class ProductUpdatePatch(BaseModel):
 
 class ProductRead(BaseModel):
     """Схема для чтения продукта"""
-    model_config = ConfigDict(
-        from_attributes=True,
-        extra='forbid'
-    )
-    
+
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
     id: int
     name: str
     description: str | None

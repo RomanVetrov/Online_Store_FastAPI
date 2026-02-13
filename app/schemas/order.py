@@ -7,11 +7,12 @@ from app.models.order import OrderStatus
 
 class OrderItemCreate(BaseModel):
     """Схема создания позиции в заказе (товар + количество при оформлении)."""
+
     product_id: int = Field(gt=0, description="ID товара")
     quantity: int = Field(gt=0, le=1000, description="Количество (1-1000)")
-    
+
     # Валидация quantity через validator (альтернатива Field constraints)
-    @field_validator('quantity')
+    @field_validator("quantity")
     @classmethod
     def validate_quantity(cls, v: int) -> int:
         """Дополнительная проверка quantity (можно расширить логику)."""
@@ -22,8 +23,9 @@ class OrderItemCreate(BaseModel):
 
 class OrderItemRead(BaseModel):
     """Позиция заказа с ценой (снимок на момент оформления заказа)."""
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     product_id: int
     quantity: int
@@ -32,13 +34,14 @@ class OrderItemRead(BaseModel):
 
 class OrderItemReadDetailed(BaseModel):
     """Позиция заказа с детальной информацией о товаре (название, цена)."""
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     product_id: int
     quantity: int
     price: Decimal
-    
+
     # Вложенная схема: клиент видит название товара, его категорию и т.д.
     # Требует подгрузки relationship в query (selectinload/joinedload)
     product: "ProductReadSimple"  # forward reference, определим ниже
@@ -46,25 +49,31 @@ class OrderItemReadDetailed(BaseModel):
 
 class OrderCreate(BaseModel):
     """Схема оформления заказа: список товаров и их количество."""
+
     items: list[OrderItemCreate] = Field(
         min_length=1,
         max_length=100,  # защита от DOS: максимум 100 позиций
-        description="Список товаров в заказе"
+        description="Список товаров в заказе",
     )
-    
-    @field_validator('items')
+
+    @field_validator("items")
     @classmethod
-    def validate_unique_products(cls, items: list[OrderItemCreate]) -> list[OrderItemCreate]:
+    def validate_unique_products(
+        cls, items: list[OrderItemCreate]
+    ) -> list[OrderItemCreate]:
         product_ids = [item.product_id for item in items]
         if len(product_ids) != len(set(product_ids)):
-            raise ValueError("Дублирование товаров в заказе. Увеличьте quantity вместо повторения.")
+            raise ValueError(
+                "Дублирование товаров в заказе. Увеличьте quantity вместо повторения."
+            )
         return items
 
 
 class OrderRead(BaseModel):
     """Базовая схема заказа: статус, сумма, дата создания."""
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     user_id: int
     status: OrderStatus
@@ -75,25 +84,28 @@ class OrderRead(BaseModel):
 
 class OrderReadDetailed(BaseModel):
     """Детальная схема заказа со списком позиций и данными товаров."""
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     user_id: int
     status: OrderStatus
     total_price: Decimal
     created_at: datetime
     updated_at: datetime
-    
+
     # Вложенный список позиций с информацией о товарах
     items: list[OrderItemReadDetailed]
 
 
 class ProductReadSimple(BaseModel):
     """Упрощённая схема товара для вложенности в OrderItemReadDetailed (id, название, цена)."""
+
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     name: str
     price: Decimal  # текущая цена (для сравнения с исторической в OrderItem)
 
-OrderItemReadDetailed.model_rebuild() # для разрешения forward reference после определения ProductReadSimple
+
+OrderItemReadDetailed.model_rebuild()  # для разрешения forward reference после определения ProductReadSimple

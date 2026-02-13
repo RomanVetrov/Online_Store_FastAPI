@@ -16,7 +16,7 @@ def create_access_token(
     *,
     subject: str,
     extra_claims: dict[str, Any] | None = None,
-    expires_delta: timedelta | None = None
+    expires_delta: timedelta | None = None,
 ) -> str:
     """
     Создание JWT access токена.
@@ -43,25 +43,26 @@ def create_access_token(
         payload.update(extra_claims)
 
     return jwt.encode(
-        payload=payload,
-        key=settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        payload=payload, key=settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
 
 
 class TokenExpired(Exception):
     """Исключение для истёкших токенов."""
+
     pass
 
 
 class TokenInvalid(Exception):
     """Исключение для невалидных токенов."""
+
     pass
 
 
 @dataclass(frozen=True)
 class TokenData:
     """Данные из декодированного JWT токена."""
+
     sub: str
     payload: dict[str, Any]
 
@@ -85,9 +86,7 @@ def decode_access_token(token: str) -> TokenData:
             jwt=token,
             key=settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
-            options={
-                "require": ["sub", "exp"]
-            }
+            options={"require": ["sub", "exp"]},
         )
     except ExpiredSignatureError as e:
         raise TokenExpired("Токен истёк") from e

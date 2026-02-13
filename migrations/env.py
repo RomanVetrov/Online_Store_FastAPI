@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from app.config import settings
-from app.database import Base   # in this
+from app.database import Base  # in this
+
 # Import models so they're registered on Base.metadata for autogenerate
 import app.models  # noqa: F401                          in this
 
@@ -25,7 +26,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata                 # in this
+target_metadata = Base.metadata  # in this
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -45,7 +46,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE_URL # in this
+    url = settings.DATABASE_URL  # in this
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -69,7 +70,7 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL) # in this
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)  # in this
 
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),

@@ -21,8 +21,8 @@ class Product(TimestampMixin, Base):
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), server_default=text("true"))
-    
+
     category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id", ondelete="RESTRICT"),
-        nullable=False)
+        ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
+    )
     category: Mapped[Category] = relationship(back_populates="products")

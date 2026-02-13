@@ -18,6 +18,8 @@ class Category(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     slug: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, server_default=text("true"))
+    is_active: Mapped[bool] = mapped_column(
+        Boolean(), nullable=False, server_default=text("true")
+    )
 
     products: Mapped[list["Product"]] = relationship(back_populates="category")

@@ -17,7 +17,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     "/register",
     response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Регистрация пользователя"
+    summary="Регистрация пользователя",
 )
 async def create_user(
     payload: RegisterCreate,
@@ -28,20 +28,16 @@ async def create_user(
     if check_email:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким Email уже зарегистрирован"
+            detail="Пользователь с таким Email уже зарегистрирован",
         )
-    new_user = await register_user(
-        session,
-        payload.email,
-        payload.password
-    )
+    new_user = await register_user(session, payload.email, payload.password)
     return UserRead.model_validate(new_user)
 
 
 @router.post("/login", response_model=Token, summary="Вход в систему")
 async def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    session: AsyncSession = Depends(get_db)
+    session: AsyncSession = Depends(get_db),
 ):
     """Аутентификация пользователя и выдача JWT токена."""
     user = await authenticate_user(session, form_data.username, form_data.password)
@@ -49,13 +45,12 @@ async def login_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный логин или пароль",
-            headers={"WWW-Authenticate": "bearer"}
+            headers={"WWW-Authenticate": "bearer"},
         )
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Аккаунт заблокирован"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Аккаунт заблокирован"
         )
 
     access_token = create_access_token(

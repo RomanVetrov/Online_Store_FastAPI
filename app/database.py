@@ -5,18 +5,18 @@ from collections.abc import AsyncGenerator
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=False, # логи
+    echo=False,  # логи
 )
 
 AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    engine, class_=AsyncSession, expire_on_commit=False
 )
+
 
 class Base(DeclarativeBase):
     pass
 
-async def get_db() -> AsyncGenerator[AsyncSession]: # асинхронно генерит асинк сессию
+
+async def get_db() -> AsyncGenerator[AsyncSession]:  # асинхронно генерит асинк сессию
     async with AsyncSessionLocal() as session:
         yield session

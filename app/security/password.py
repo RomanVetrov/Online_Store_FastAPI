@@ -58,6 +58,7 @@ async def verify_password(*, password: str, hashed_password: str) -> bool:
     Returns:
         bool: True если пароль совпадает, False иначе
     """
+
     def _verify() -> bool:
         if len(password) > settings.ARGON_MAX_PASSWORD_LEN:
             return False

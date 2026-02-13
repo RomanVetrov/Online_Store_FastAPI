@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -14,15 +13,12 @@ class CategoryAlreadyExists(Exception):
     pass
 
 
-
 async def get_category(session: AsyncSession, val: int | str) -> Category | None:
-    """ Category по id или slug (БЕЗ подгрузки товаров) """    
+    """Category по id или slug (БЕЗ подгрузки товаров)"""
     if isinstance(val, int) or (isinstance(val, str) and val.isdigit()):
-        return await session.get(Category, int(val))    
+        return await session.get(Category, int(val))
     # Поиск по slug
-    res = await session.execute(
-        select(Category).where(Category.slug == val)
-    )
+    res = await session.execute(select(Category).where(Category.slug == val))
     return res.scalar_one_or_none()
 
 
@@ -31,9 +27,9 @@ async def category_list(
     *,
     only_active: bool = True,
     limit: int | None = 50,
-    offset: int | None = 0
-    ) -> Sequence[Category]:
-    """ Получить список Category """
+    offset: int | None = 0,
+) -> Sequence[Category]:
+    """Получить список Category"""
     stmt = select(Category).order_by(Category.id)
     if only_active:
         stmt = stmt.where(Category.is_active)
@@ -46,7 +42,7 @@ async def category_list(
 
 
 async def create_category(session: AsyncSession, *, name: str, slug: str) -> Category:
-    """ Создать Category / raise unique error """
+    """Создать Category / raise unique error"""
     try:
         category = Category(name=name, slug=slug)
         session.add(category)
@@ -59,11 +55,9 @@ async def create_category(session: AsyncSession, *, name: str, slug: str) -> Cat
 
 
 async def update_category(
-        session: AsyncSession,
-        category: Category,
-        **kwargs
-    ) -> Category:
-    """ Обновить Category """
+    session: AsyncSession, category: Category, **kwargs
+) -> Category:
+    """Обновить Category"""
     for field, value in kwargs.items():
         setattr(category, field, value)
     session.add(category)
@@ -73,7 +67,7 @@ async def update_category(
 
 
 async def deactivate_category(session: AsyncSession, category: Category) -> Category:
-    """ Деактивировать Category """
+    """Деактивировать Category"""
     category.is_active = False
     await session.commit()
     return category

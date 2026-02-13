@@ -8,17 +8,16 @@ class CategoryCreate(BaseModel):
 
 
 class CategoryUpdatePatch(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
     name: str | None = Field(None, max_length=50)
     slug: str | None = Field(None, max_length=50)
-
 
 
 class CategoryRead(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
-        extra='forbid' # лишние входные - 422 Unprocessable Entity
-        )
+        extra="forbid",  # лишние входные - 422 Unprocessable Entity
+    )
     id: int
     name: str
     slug: str
