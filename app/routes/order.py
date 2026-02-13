@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.order import OrderStatus
 from app.models.user import User
 from app.security.dependences import get_current_user
 
@@ -9,8 +10,7 @@ from app.security.dependences import get_current_user
 from app.schemas.order import (
     OrderCreate,
     OrderRead,
-    OrderReadDetailed,
-    OrderUpdateStatus
+    OrderReadDetailed
 )
 
 # Сервис (для создания заказа - бизнес-логика)
@@ -132,18 +132,17 @@ async def get_order_details(
     return OrderReadDetailed.model_validate(order)
 
 
-@router.patch(
-    "/{order_id}/status",
+@router.post(
+    "/{order_id}/cancel",
     response_model=OrderRead,
-    summary="Изменить статус заказа"
+    summary="Отменить заказ"
 )
-async def update_status_route(
+async def cancel_order_route(
     order_id: int,
-    payload: OrderUpdateStatus,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db)
 ):
-    """Изменение статуса заказа (только для владельца)."""
+    """Отмена заказа владельцем (разрешено только из pending)."""
     
     # Получаем заказ без items (для смены статуса не нужны)
     order = await get_order_by_id(
@@ -166,11 +165,16 @@ async def update_status_route(
             detail="Нет доступа к этому заказу"
         )
     
-    # Обновляем статус
+    if order.status != OrderStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Заказ нельзя отменить в текущем статусе"
+        )
+
     updated_order = await update_order_status(
         session,
         order,
-        new_status=payload.status
+        new_status=OrderStatus.CANCELLED
     )
     
     return OrderRead.model_validate(updated_order)

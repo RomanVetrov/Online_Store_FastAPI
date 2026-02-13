@@ -88,13 +88,6 @@ class OrderReadDetailed(BaseModel):
     items: list[OrderItemReadDetailed]
 
 
-class OrderUpdateStatus(BaseModel):
-    """Схема обновления статуса заказа (только статус, остальное не меняется)."""
-    model_config = ConfigDict(extra='forbid')
-    
-    status: OrderStatus
-
-
 class ProductReadSimple(BaseModel):
     """Упрощённая схема товара для вложенности в OrderItemReadDetailed (id, название, цена)."""
     model_config = ConfigDict(from_attributes=True)
