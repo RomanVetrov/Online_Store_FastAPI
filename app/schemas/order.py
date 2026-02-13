@@ -103,4 +103,4 @@ class ProductReadSimple(BaseModel):
     name: str
     price: Decimal  # текущая цена (для сравнения с исторической в OrderItem)
 
-OrderItemReadDetailed.model_rebuild()
+OrderItemReadDetailed.model_rebuild() # для разрешения forward reference после определения ProductReadSimple
