@@ -17,7 +17,7 @@ class Product(TimestampMixin, Base):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), server_default=text("true"))
