@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependency import CategoryDep
+from app.security.dependences import get_current_user
 from app.schemas.category import CategoryRead, CategoryCreate, CategoryUpdatePatch
 from app.repositories.category_repo import (
     CategoryAlreadyExists,
@@ -38,7 +39,12 @@ async def get_category_route(category: CategoryDep):
     return category
 
 
-@router.patch("/{val}", response_model=CategoryRead, summary="Обновить категорию")
+@router.patch(
+    "/{val}",
+    response_model=CategoryRead,
+    summary="Обновить категорию",
+    dependencies=[Depends(get_current_user)]
+)
 async def category_update_route(
     category: CategoryDep,
     update_data: CategoryUpdatePatch,
@@ -58,7 +64,8 @@ async def category_update_route(
     "/",
     response_model=CategoryRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Создать категорию"
+    summary="Создать категорию",
+    dependencies=[Depends(get_current_user)]
 )
 async def category_create_route(
     payload: CategoryCreate,
@@ -78,7 +85,12 @@ async def category_create_route(
     return new_category
 
 
-@router.post("/{val}/deactivate", response_model=CategoryRead, summary="Деактивировать категорию")
+@router.post(
+    "/{val}/deactivate",
+    response_model=CategoryRead,
+    summary="Деактивировать категорию",
+    dependencies=[Depends(get_current_user)]
+)
 async def deactivate_category_route(
     category: CategoryDep,
     session: AsyncSession = Depends(get_db)

@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 
 from app.database import get_db
+from app.security.dependences import get_current_user
 
 from app.schemas.product import(
     ProductCreate,
@@ -47,9 +48,11 @@ async def product_with_relation_route(product: ProductDep):
 
 
 @router.post(
-        "/",response_model=ProductRead,
+        "/",
+        response_model=ProductRead,
         status_code=status.HTTP_201_CREATED,
-        summary="Создать продукт"
+        summary="Создать продукт",
+        dependencies=[Depends(get_current_user)]
         )
 async def create_product_route(
     payload: ProductCreate,
@@ -71,7 +74,8 @@ async def create_product_route(
 @router.patch(
     "/{id}",
     response_model=ProductRead,
-    summary="Обновить продукт"
+    summary="Обновить продукт",
+    dependencies=[Depends(get_current_user)]
     )
 async def update_product_route(
     product: ProductDep,
@@ -90,7 +94,8 @@ async def update_product_route(
 @router.post(
     "/{id}/deactivate",
     response_model=ProductRead,
-    summary="Деактивировать продукт"
+    summary="Деактивировать продукт",
+    dependencies=[Depends(get_current_user)]
     )
 async def deactivate_product_route(
     product: ProductDep,
