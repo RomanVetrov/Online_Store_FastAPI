@@ -12,7 +12,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import ForeignKey, Identity, Index, JSON, Numeric, String
+from sqlalchemy import ForeignKey, Identity, Index, JSON, Numeric, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -20,6 +20,9 @@ from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.order import Order
+
+
+DEFAULT_CURRENCY = "RUB"
 
 
 class PaymentStatus(str, Enum):
@@ -42,6 +45,12 @@ class Payment(TimestampMixin, Base):
     __table_args__ = (
         Index("ix_payments_order_status", "order_id", "status"),
         Index("ix_payments_provider_payment_id", "provider_payment_id"),
+        Index(
+            "uq_payments_active_per_order",
+            "order_id",
+            unique=True,
+            postgresql_where=text("status IN ('CREATED', 'PENDING')"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(Identity(), primary_key=True)
@@ -51,7 +60,9 @@ class Payment(TimestampMixin, Base):
         index=True,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="RUB")
+    currency: Mapped[str] = mapped_column(
+        String(3), nullable=False, default=DEFAULT_CURRENCY
+    )
     provider: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[PaymentStatus] = mapped_column(
         default=PaymentStatus.CREATED,
