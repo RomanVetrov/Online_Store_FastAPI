@@ -17,12 +17,14 @@ from app.payments.gateway import (
 class MockPaymentGateway(PaymentGateway):
     """Тестовый шлюз оплаты без внешнего провайдера."""
 
+    provider_name: str = "mock"
+
     async def create_payment(self, req: CreatePaymentRequest) -> CreatePaymentResult:
         """Сгенерировать тестовый платеж и ссылку на оплату."""
         provider_payment_id = f"mock_{req.payment_id}_{uuid4().hex[:8]}"
         checkout_url = f"https://mock-pay.local/checkout/{provider_payment_id}"
         raw = {
-            "provider": "mock",
+            "provider": self.provider_name,
             "provider_payment_id": provider_payment_id,
             "checkout_url": checkout_url,
         }
@@ -54,11 +56,11 @@ class MockPaymentGateway(PaymentGateway):
         provider_payment_id = payload.get("provider_payment_id")
         status = payload.get("status")
         if not isinstance(event_id, str) or not event_id:
-            raise ValueError("Missing or invalid event_id")
+            raise ValueError("Отсутствует или некорректный event_id")
         if not isinstance(provider_payment_id, str) or not provider_payment_id:
-            raise ValueError("Missing or invalid provider_payment_id")
+            raise ValueError("Отсутствует или некорректный provider_payment_id")
         if not isinstance(status, str) or not status:
-            raise ValueError("Missing or invalid status")
+            raise ValueError("Отсутствует или некорректный status")
 
         return WebhookEvent(
             event_id=event_id,

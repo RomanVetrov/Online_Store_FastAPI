@@ -47,6 +47,8 @@ class WebhookEvent:
 class PaymentGateway(Protocol):
     """Интерфейс платежного провайдера."""
 
+    provider_name: str
+
     async def create_payment(self, req: CreatePaymentRequest) -> CreatePaymentResult:
         """Создать платеж у внешнего провайдера."""
         ...
