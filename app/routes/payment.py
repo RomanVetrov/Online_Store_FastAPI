@@ -53,8 +53,6 @@ async def create_payment_route(
             session,
             order=order,
             gateway=gateway,
-            provider="mock",
-            currency="RUB",
         )
     except PaymentStateError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))

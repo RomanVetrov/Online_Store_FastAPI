@@ -10,14 +10,16 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.order import Order, OrderStatus
-from app.models.payment import Payment, PaymentStatus
-from app.payments.gateway import PaymentGateway, CreatePaymentRequest, WebhookEvent
+from app.models.payment import DEFAULT_CURRENCY, Payment, PaymentStatus
+from app.payments.gateway import CreatePaymentRequest, PaymentGateway, WebhookEvent
 from app.repositories.order_repo import get_order_by_id, update_order_status
 from app.repositories.payment_repo import (
     create_payment,
+    get_active_payment_for_order,
     get_payment_by_provider_payment_id,
     update_payment_after_create,
     update_payment_status,
@@ -58,24 +60,32 @@ async def create_payment_for_order(
     *,
     order: Order,
     gateway: PaymentGateway,
-    provider: str = "mock",
-    currency: str = "RUB",
+    currency: str = DEFAULT_CURRENCY,
 ) -> Payment:
     """Создать платеж для заказа и отправить его в провайдер.
 
     Доступно только для заказа в статусе `pending`.
+    Возвращает ошибку, если по заказу уже есть активный платёж.
     """
     if order.status != OrderStatus.PENDING:
         raise PaymentStateError("Оплата доступна только для заказа в статусе pending")
 
-    payment = await create_payment(
-        session,
-        order_id=order.id,
-        amount=order.total_price,
-        currency=currency,
-        provider=provider,
-        idempotency_key=uuid4().hex,
-    )
+    existing = await get_active_payment_for_order(session, order.id)
+    if existing:
+        raise PaymentStateError("По этому заказу уже есть активный платёж")
+
+    try:
+        payment = await create_payment(
+            session,
+            order_id=order.id,
+            amount=order.total_price,
+            currency=currency,
+            provider=gateway.provider_name,
+            idempotency_key=uuid4().hex,
+        )
+    except IntegrityError:
+        await session.rollback()
+        raise PaymentStateError("По этому заказу уже есть активный платёж")
 
     provider_result = await gateway.create_payment(
         CreatePaymentRequest(
@@ -110,12 +120,15 @@ async def process_webhook_event(
         raise PaymentNotFoundError("Платеж не найден")
 
     new_status = _map_provider_status(event.status)
+    fail_reason = (
+        event.raw.get("fail_reason") if new_status == PaymentStatus.FAILED else None
+    )
     payment = await update_payment_status(
         session,
         payment,
         status=new_status,
         provider_payload=event.raw,
-        fail_reason=None if new_status != PaymentStatus.FAILED else "Платеж отклонен",
+        fail_reason=fail_reason,
     )
 
     if new_status == PaymentStatus.SUCCEEDED:
