@@ -39,14 +39,17 @@ async def create_payment(
     return payment
 
 
-async def get_payment_by_idempotency_key(
+async def get_active_payment_for_order(
     session: AsyncSession,
-    idempotency_key: str,
+    order_id: int,
 ) -> Payment | None:
-    """Найти платеж по idempotency key."""
-    stmt = select(Payment).where(Payment.idempotency_key == idempotency_key)
+    """Найти активный (CREATED или PENDING) платёж по заказу."""
+    stmt = select(Payment).where(
+        Payment.order_id == order_id,
+        Payment.status.in_([PaymentStatus.CREATED, PaymentStatus.PENDING]),
+    )
     result = await session.execute(stmt)
-    return result.scalar_one_or_none()
+    return result.scalars().first()
 
 
 async def get_payment_by_provider_payment_id(

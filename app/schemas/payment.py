@@ -24,11 +24,3 @@ class PaymentRead(BaseModel):
     fail_reason: str | None
     created_at: datetime
     updated_at: datetime
-
-
-class MockWebhookPayload(BaseModel):
-    """Тело mock-webhook запроса."""
-
-    event_id: str
-    provider_payment_id: str
-    status: str
